@@ -1,0 +1,26 @@
+{
+  "name": "bxSlider",
+  "version": "5.0.0-beta",
+  "description": "Responsive jQuery Slider",
+  "contributors": [
+    {
+      "name": "Steven Wanderski"
+    }
+  ],
+  "scripts": {
+    "start": "gulp serve",
+    "postinstall": ""
+  },
+  "dependencies": {
+    "systemjs": "^0.18.4"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.8.2",
+    "gulp": "^3.8.8",
+    "gulp-babel": "^5.1.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-rename": "^1.2.2",
+    "superstatic": "^1.2.3",
+    "vinyl-transform": "^1.0.0"
+  }
+}

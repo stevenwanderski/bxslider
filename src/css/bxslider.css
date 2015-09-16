@@ -1,0 +1,18 @@
+.bxslider-stage {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+[data-bxslider-mode="horizontal"] {
+  position: relative;
+  left: 0;
+  transition: left 0.5s;
+  width: 999999px;
+}
+
+[data-bxslider-mode="horizontal"] > * {
+  float: left;
+  margin: 0;
+  padding: 0;
+}
