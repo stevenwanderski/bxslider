@@ -95,51 +95,135 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
+var HorizontalInfinite = (function () {
+  function HorizontalInfinite(slider) {
+    _classCallCheck(this, HorizontalInfinite);
+
+    this.slider = slider;
+    this.setupDefaults();
+    this.setupEventHandlers();
+  }
+
+  _createClass(HorizontalInfinite, [{
+    key: 'setupDefaults',
+    value: function setupDefaults() {
+      var defaults = {
+        infinite: true
+      };
+
+      this.slider.config = Object.assign(defaults, this.slider.config);
+    }
+  }, {
+    key: 'setupEventHandlers',
+    value: function setupEventHandlers() {
+      this.slider.$element.on('bxs:go', this.onGo.bind(this));
+    }
+  }, {
+    key: 'onGo',
+    value: function onGo(e, params) {
+      if (this.needToAppend(params.fromIndex, params.toIndex)) {}
+    }
+  }, {
+    key: 'needToAppend',
+    value: function needToAppend(fromIndex, toIndex) {}
+  }], [{
+    key: 'publicMethods',
+    value: function publicMethods() {
+      return [];
+    }
+  }, {
+    key: 'pluginName',
+    value: function pluginName() {
+      return 'HorizontalInfinite';
+    }
+  }]);
+
+  return HorizontalInfinite;
+})();
+
+$.fn.bxslider.Constructor.Plugins.push(HorizontalInfinite);
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
 var Horizontal = (function () {
   function Horizontal(slider) {
     _classCallCheck(this, Horizontal);
 
     this.slider = slider;
     this.slider.currentIndex = 0;
-
-    var defaults = {
-      breakPoints: {
-        0: 1
-      },
-      speed: 500,
-      preventSlideWhitespace: false
-    };
-
-    this.slider.config = Object.assign(defaults, this.slider.config);
+    this.setupDefaults();
+    this.setupEventHandlers();
     this.setup();
   }
 
   _createClass(Horizontal, [{
+    key: 'setupDefaults',
+    value: function setupDefaults() {
+      var defaults = {
+        breakPoints: {
+          0: 1
+        },
+        speed: 500,
+        preventSlideWhitespace: false
+      };
+
+      this.slider.config = Object.assign(defaults, this.slider.config);
+    }
+  }, {
+    key: 'setupEventHandlers',
+    value: function setupEventHandlers() {
+      this.slider.$element.on('bxs:go', this.onGo.bind(this));
+      $(window).on('resize', this.onResize.bind(this));
+    }
+  }, {
     key: 'setup',
     value: function setup() {
-      var _this = this;
-
       this.slider.$element.wrap('<div class="bxslider-stage"></div>');
       this.slider.$stage = this.slider.$element.parent();
       this.setSlideWidths();
-
-      $(window).on('resize', function () {
-        _this.setSlideWidths();
-        _this.go(_this.slider.currentIndex, 0);
-      });
     }
   }, {
     key: 'go',
     value: function go(index) {
       var speed = arguments.length <= 1 || arguments[1] === undefined ? this.slider.config.speed : arguments[1];
 
-      this.slider.currentIndex = index;
+      this.slider.$element.trigger('bxs:go', {
+        fromIndex: this.slider.currentIndex,
+        toIndex: index,
+        speed: speed
+      });
+    }
+  }, {
+    key: 'onGo',
+    value: function onGo(e, params) {
+      this.slider.currentIndex = params.toIndex;
 
-      var newIndex = this.getNewIndex(index);
-
-      this.slider.$element.css('transition-duration', speed + 'ms');
-      var leftPosition = this.slider.$children.eq(newIndex).position().left;
+      var leftPosition = this.getNewPosition(this.slider.currentIndex);
+      this.slider.$element.css('transition-duration', params.speed + 'ms');
       this.slider.$element.css('left', -leftPosition);
+
+      // Add completed go event here
+    }
+  }, {
+    key: 'onResize',
+    value: function onResize(e, params) {
+      this.setSlideWidths();
+      this.go(this.slider.currentIndex, 0);
+    }
+  }, {
+    key: 'getNewPosition',
+    value: function getNewPosition(index) {
+      var positionIndex = index;
+      if (this.slider.config.preventSlideWhitespace) {
+        var lastVisibleIndex = this.slider.$children.length - this.slider.getVisibleSlideCount();
+        if (index > lastVisibleIndex) {
+          positionIndex = lastVisibleIndex;
+        }
+      }
+      return this.slider.$children.eq(positionIndex).position().left;
     }
   }, {
     key: 'getNewIndex',
@@ -203,49 +287,207 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
+var PagerControls = (function () {
+  function PagerControls(slider) {
+    _classCallCheck(this, PagerControls);
+
+    this.slider = slider;
+    this.setupDefaults();
+    this.setup();
+    this.setupEventHandlers();
+  }
+
+  _createClass(PagerControls, [{
+    key: 'setupDefaults',
+    value: function setupDefaults() {
+      var defaults = {
+        forwardControl: true,
+        forwardClassName: 'bx-forward',
+        forwardSelector: '.bx-forward',
+        forwardText: 'Forward',
+        backControl: true,
+        backClassName: 'bx-back',
+        backSelector: '.bx-back',
+        backText: 'Back'
+      };
+
+      this.slider.config = Object.assign(defaults, this.slider.config);
+    }
+  }, {
+    key: 'setupEventHandlers',
+    value: function setupEventHandlers() {
+      this.slider.$element.on('bxs:forward', this.onForward.bind(this));
+      this.slider.$element.on('bxs:back', this.onBack.bind(this));
+      this.slider.$forwardEl.on('click', this.clickForward.bind(this));
+      this.slider.$backEl.on('click', this.clickBack.bind(this));
+    }
+  }, {
+    key: 'setup',
+    value: function setup() {
+      if (this.slider.config.forwardControl) {
+        this.setupForwardControl();
+      }
+
+      if (this.slider.config.backControl) {
+        this.setupBackControl();
+      }
+    }
+  }, {
+    key: 'setupForwardControl',
+    value: function setupForwardControl() {
+      var $forwardEl = undefined;
+      if ($(this.slider.config.forwardSelector).length) {
+        $forwardEl = $(this.slider.config.forwardSelector).first();
+      } else {
+        $forwardEl = $('<a href="" class="' + this.slider.config.forwardClassName + '">' + this.slider.config.forwardText + '</a>');
+      }
+
+      this.slider.$forwardEl = $forwardEl;
+      this.slider.$element.after(this.slider.$forwardEl);
+    }
+  }, {
+    key: 'setupBackControl',
+    value: function setupBackControl() {
+      var $backEl = undefined;
+      if ($(this.slider.config.backSelector).length) {
+        $backEl = $(this.slider.config.backSelector).first();
+      } else {
+        $backEl = $('<a href="" class="' + this.slider.config.backClassName + '">' + this.slider.config.backText + '</a>');
+      }
+
+      this.slider.$backEl = $backEl;
+      this.slider.$element.after(this.slider.$backEl);
+    }
+  }, {
+    key: 'onForward',
+    value: function onForward(e, params) {
+      this.slider.go(this.getForwardIndex());
+    }
+  }, {
+    key: 'onBack',
+    value: function onBack(e, params) {
+      this.slider.go(this.getBackIndex());
+    }
+  }, {
+    key: 'clickForward',
+    value: function clickForward(e, params) {
+      e.preventDefault();
+      this.slider.$element.trigger('bxs:forward');
+    }
+  }, {
+    key: 'clickBack',
+    value: function clickBack(e, params) {
+      e.preventDefault();
+      this.slider.$element.trigger('bxs:back');
+    }
+  }, {
+    key: 'getForwardIndex',
+    value: function getForwardIndex() {
+      if (this.slider.currentIndex >= this.slider.$children.length - 1) {
+        return 0;
+      } else {
+        return this.slider.currentIndex + 1;
+      }
+    }
+  }, {
+    key: 'getBackIndex',
+    value: function getBackIndex() {
+      if (this.slider.currentIndex === 0) {
+        return this.slider.$children.length - 1;
+      } else {
+        return this.slider.currentIndex - 1;
+      }
+    }
+  }], [{
+    key: 'publicMethods',
+    value: function publicMethods() {
+      return [];
+    }
+  }, {
+    key: 'pluginName',
+    value: function pluginName() {
+      return 'PagerControls';
+    }
+  }]);
+
+  return PagerControls;
+})();
+
+$.fn.bxslider.Constructor.Plugins.push(PagerControls);
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
 var Pager = (function () {
   function Pager(slider) {
     _classCallCheck(this, Pager);
 
     this.slider = slider;
-
-    var defaults = {
-      pager: true
-    };
-
-    this.slider.config = Object.assign(defaults, this.slider.config);
+    this.setupDefaults();
 
     if (this.slider.config.pager) {
+      this.setupEventHandlers();
       this.setup();
     }
   }
 
   _createClass(Pager, [{
+    key: 'setupDefaults',
+    value: function setupDefaults() {
+      var defaults = {
+        pager: true,
+        pagerActiveClassName: 'pager-active'
+      };
+
+      this.slider.config = Object.assign(defaults, this.slider.config);
+    }
+  }, {
+    key: 'setupEventHandlers',
+    value: function setupEventHandlers() {
+      this.slider.$element.on('bxs:pager', this.onPager.bind(this));
+      this.slider.$element.on('bxs:go', this.onGo.bind(this));
+    }
+  }, {
     key: 'setup',
     value: function setup() {
       var _this = this;
 
-      var $pager = $('<div class="pager"></div>');
+      this.slider.$pager = $('<div class="pager"></div>');
 
       var _loop = function (i) {
         var $pagerLink = $('<a href="">' + (i + 1) + '</a>');
+
         $pagerLink.on('click', function (e) {
           e.preventDefault();
-          _this.clickPagerLink(i);
+          _this.slider.$element.trigger('bxs:pager', { index: i });
         });
-        $pager.append($pagerLink);
+
+        _this.slider.$pager.append($pagerLink);
       };
 
       for (var i = 0; i < this.slider.$children.length; i++) {
         _loop(i);
       };
 
-      this.slider.$element.after($pager);
+      this.setActive(this.slider.currentIndex);
+      this.slider.$element.after(this.slider.$pager);
     }
   }, {
-    key: 'clickPagerLink',
-    value: function clickPagerLink(index) {
-      this.slider.go(index);
+    key: 'onPager',
+    value: function onPager(e, params) {
+      this.slider.go(params.index);
+    }
+  }, {
+    key: 'onGo',
+    value: function onGo(e, params) {
+      this.setActive(params.toIndex);
+    }
+  }, {
+    key: 'setActive',
+    value: function setActive(index) {
+      this.slider.$pager.children().removeClass(this.slider.config.pagerActiveClassName).eq(index).addClass(this.slider.config.pagerActiveClassName);
     }
   }], [{
     key: 'publicMethods',
@@ -263,3 +505,4 @@ var Pager = (function () {
 })();
 
 $.fn.bxslider.Constructor.Plugins.push(Pager);
+//# sourceMappingURL=bxslider.js.map

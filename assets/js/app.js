@@ -8,7 +8,7 @@ $(function(){
     },
     pager: true,
     speed: 500,
-    preventSlideWhitespace: true
+    preventSlideWhitespace: false
   });
 
 });

@@ -1,3 +1,11 @@
 .slide {
   border: solid red 5px;
 }
+
+.pager a {
+  color: green;
+}
+
+a.pager-active {
+  color: red;
+}
