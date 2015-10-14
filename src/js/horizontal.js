@@ -1,37 +1,40 @@
 class Horizontal {
-  constructor(slider) {
+  constructor(slider, config) {
     this.slider = slider;
-    this.slider.currentIndex = 0;
-    this.setupDefaults();
-    this.setupEventHandlers();
+    this.config = config;
+    this.slider.$children = this.slider.$el.children();
+  }
+
+  init() {
+    console.log('i am lakos.');
     this.setup();
   }
 
-  setupDefaults() {
-    let defaults = {
-      breakPoints: {
-        0: 1
-      },
-      speed: 500,
-      preventSlideWhitespace: false
-    }
-
-    this.slider.config = Object.assign(defaults, this.slider.config);
-  }
-
   setupEventHandlers() {
-    this.slider.$element.on('bxs:go', this.onGo.bind(this));
+    this.slider.$el.on('bxs:go', this.onGo.bind(this));
+    this.slider.$el.on('transitionend', this.onTransitionEnd.bind(this));
     $(window).on('resize', this.onResize.bind(this));
   }
 
-  setup() {
-    this.slider.$element.wrap('<div class="bxslider-stage"></div>');
-    this.slider.$stage = this.slider.$element.parent();
-    this.setSlideWidths();
+  setupDefaults() {
+    this.config = Object.assign(Horizontal.defaults(), this.config);
   }
 
-  go(index, speed = this.slider.config.speed) {
-    this.slider.$element.trigger('bxs:go', {
+  setup() {
+    this.setupDefaults();
+    this.setupEventHandlers();
+
+    this.slider.$el.wrap('<div class="bxslider-stage"></div>');
+    this.slider.$stage = this.slider.$el.parent();
+    this.slider.$children.each(function(index, el){
+      $(el).attr('data-bxslider-index', index);
+    });
+    this.setSlideWidths();
+    this.go(this.config.startIndex, 0);
+  }
+
+  go(index, speed = this.config.speed) {
+    this.slider.$el.trigger('bxs:go', {
       fromIndex: this.slider.currentIndex,
       toIndex: index,
       speed: speed
@@ -39,13 +42,17 @@ class Horizontal {
   }
 
   onGo(e, params) {
-    this.slider.currentIndex = params.toIndex;
+    this.slider.transitionParams = params;
+    this.slider.currentIndex = params.toIndex > this.slider.$children.length - 1 ? 0 : params.toIndex;
 
-    let leftPosition = this.getNewPosition(this.slider.currentIndex);
-    this.slider.$element.css('transition-duration', `${params.speed}ms`);
-    this.slider.$element.css('left', -leftPosition);
+    let leftPosition = this.getNewPosition(params.toIndex);
+    this.slider.$el.css('transition-duration', `${params.speed}s`);
+    this.slider.$el.css('left', -leftPosition);
+  }
 
-    // Add completed go event here
+  onTransitionEnd(e, params) {
+    this.slider.$el.trigger('bxs:transitionEnd', this.slider.transitionParams);
+    this.slider.transitionParams = null;
   }
 
   onResize(e, params) {
@@ -55,20 +62,22 @@ class Horizontal {
 
   getNewPosition(index) {
     let positionIndex = index;
-    if(this.slider.config.preventSlideWhitespace){
-      let lastVisibleIndex = this.slider.$children.length - this.slider.getVisibleSlideCount();
+
+    if(this.config.preventSlideWhitespace){
+      let lastVisibleIndex = this.slider.$children.length - this.getVisibleSlideCount();
       if(index > lastVisibleIndex){
         positionIndex = lastVisibleIndex;
       }
     }
-    return this.slider.$children.eq(positionIndex).position().left;
+
+    return this.slider.$children.filter('[data-bxslider-index]').eq(positionIndex).position().left;
   }
 
   getNewIndex(index) {
     let newIndex = index;
 
-    if(this.slider.config.preventSlideWhitespace){
-      let lastVisibleIndex = this.slider.$children.length - this.slider.getVisibleSlideCount();
+    if(this.config.preventSlideWhitespace){
+      let lastVisibleIndex = this.getLastVisibleIndex();
       if(index > lastVisibleIndex){
         newIndex = lastVisibleIndex;
       }
@@ -78,12 +87,16 @@ class Horizontal {
   }
 
   getVisibleSlideCount() {
-    return this.slider.config.breakPoints[this.getBreakPoint()];
+    return this.config.breakPoints[this.getBreakPoint()];
+  }
+
+  getLastVisibleIndex() {
+    return this.slider.$children.length - this.getVisibleSlideCount();
   }
 
   getBreakPoint() {
     let windowWidth = $(window).width();
-    let sortedBreakPointsKeys = Object.keys(this.slider.config.breakPoints);
+    let sortedBreakPointsKeys = Object.keys(this.config.breakPoints);
     let breakPoint = 0;
     for (let i = 0; i <= sortedBreakPointsKeys.length; i++) {
       if(windowWidth > sortedBreakPointsKeys[i]){
@@ -100,8 +113,23 @@ class Horizontal {
     this.slider.$children.outerWidth(Math.floor(elementWidth / this.getVisibleSlideCount()));
   }
 
+  static shouldInitialize(config) {
+    return true;
+  }
+
+  static defaults() {
+    return {
+      breakPoints: {
+        0: 1
+      },
+      speed: 0.5,
+      startIndex: 0,
+      preventSlideWhitespace: false
+    }
+  }
+
   static publicMethods() {
-    return ['go', 'getVisibleSlideCount'];
+    return ['go', 'getVisibleSlideCount', 'getLastVisibleIndex'];
   }
 
   static pluginName() {

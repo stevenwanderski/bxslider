@@ -1,9 +1,6 @@
 class PagerControls {
   constructor(slider) {
     this.slider = slider;
-    this.setupDefaults();
-    this.setup();
-    this.setupEventHandlers();
   }
 
   setupDefaults() {
@@ -29,6 +26,8 @@ class PagerControls {
   }
 
   setup() {
+    this.setupDefaults();
+
     if(this.slider.config.forwardControl){
       this.setupForwardControl();
     }
@@ -36,6 +35,8 @@ class PagerControls {
     if(this.slider.config.backControl){
       this.setupBackControl();
     }
+
+    this.setupEventHandlers();
   }
 
   setupForwardControl() {
@@ -44,10 +45,10 @@ class PagerControls {
       $forwardEl = $(this.slider.config.forwardSelector).first();
     }else{
       $forwardEl = $(`<a href="" class="${this.slider.config.forwardClassName}">${this.slider.config.forwardText}</a>`);
+      this.slider.$element.after($forwardEl);
     }
 
     this.slider.$forwardEl = $forwardEl;
-    this.slider.$element.after(this.slider.$forwardEl);
   }
 
   setupBackControl() {
@@ -56,10 +57,10 @@ class PagerControls {
       $backEl = $(this.slider.config.backSelector).first();
     }else{
       $backEl = $(`<a href="" class="${this.slider.config.backClassName}">${this.slider.config.backText}</a>`);
+      this.slider.$element.after($backEl);
     }
 
     this.slider.$backEl = $backEl;
-    this.slider.$element.after(this.slider.$backEl);
   }
 
   onForward(e, params) {
@@ -72,19 +73,20 @@ class PagerControls {
 
   clickForward(e, params) {
     e.preventDefault();
-    this.slider.$element.trigger('bxs:forward');
+    this.forward();
   }
 
   clickBack(e, params) {
     e.preventDefault();
-    this.slider.$element.trigger('bxs:back');
+    this.back();
   }
 
   getForwardIndex() {
+    return this.slider.currentIndex + 1;
     if(this.slider.currentIndex >= this.slider.$children.length - 1){
       return 0;
     }else{
-      return this.slider.currentIndex + 1
+      return this.slider.currentIndex + 1;
     }
   }
 
@@ -92,12 +94,26 @@ class PagerControls {
     if(this.slider.currentIndex === 0){
       return this.slider.$children.length - 1;
     }else{
-      return this.slider.currentIndex - 1
+      return this.slider.currentIndex - 1;
     }
   }
 
+  forward() {
+    this.slider.$element.trigger('bxs:forward', {
+      from: this.slider.currentIndex,
+      to: this.getForwardIndex()
+    });
+  }
+
+  back() {
+    this.slider.$element.trigger('bxs:back', {
+      from: this.slider.currentIndex,
+      to: this.getBackIndex()
+    });
+  }
+
   static publicMethods() {
-    return [];
+    return ['forward', 'back'];
   }
 
   static pluginName() {
@@ -105,4 +121,4 @@ class PagerControls {
   }
 }
 
-$.fn.bxslider.Constructor.Plugins.push(PagerControls);
+// $.fn.bxslider.Constructor.Plugins.push(PagerControls);

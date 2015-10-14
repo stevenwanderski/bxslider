@@ -13,26 +13,23 @@ const BxSlider = (($) => {
 
   class BxSlider {
 
-    constructor(element, config) {
-      this.$element = $(element);
-      this.$children = this.$element.children();
+    constructor(el, config) {
+      this.$el = $(el);
       this.config = config;
-
-      this._plugins = {};
-      this._loadPlugins();
+      this.loadPlugins();
     }
 
-    // public
-
-    go(index) {
-      console.error('The `go` method must exist in at least one plugin.');
-    }
-
-    // private
-
-    _loadPlugins() {
+    loadPlugins() {
       $.fn[NAME].Constructor.Plugins.forEach((plugin) => {
-        let pluginInstance = new plugin(this);
+        let config = Object.assign(plugin.defaults(), this.config);
+
+        if(!plugin.shouldInitialize(config)){
+          next;
+        }
+
+        let pluginInstance = new plugin(this, config);
+        pluginInstance.init();
+
         plugin.publicMethods().forEach((methodKey) => {
           BxSlider.prototype[methodKey] = plugin.prototype[methodKey].bind(pluginInstance);
         });

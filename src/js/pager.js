@@ -1,21 +1,11 @@
 class Pager {
-  constructor(slider) {
+  constructor(slider, config) {
     this.slider = slider;
-    this.setupDefaults();
-
-    if(this.slider.config.pager){
-      this.setupEventHandlers();
-      this.setup();
-    }
+    this.config = config;
   }
 
   setupDefaults() {
-    let defaults = {
-      pager: true,
-      pagerActiveClassName: 'pager-active'
-    }
-
-    this.slider.config = Object.assign(defaults, this.slider.config);
+    this.slider.config = Object.assign(Pager.defaults, this.config);
   }
 
   setupEventHandlers() {
@@ -24,6 +14,13 @@ class Pager {
   }
 
   setup() {
+    if(!this.slider.config.pager){
+      return;
+    }
+
+    this.setupDefaults();
+    this.setupEventHandlers();
+
     this.slider.$pager = $('<div class="pager"></div>');
 
     for(let i = 0; i < this.slider.$children.length; i++){
@@ -55,6 +52,17 @@ class Pager {
       .removeClass(this.slider.config.pagerActiveClassName)
       .eq(index)
       .addClass(this.slider.config.pagerActiveClassName);
+  }
+
+  static shouldInitialize(config) {
+    return config.pager;
+  }
+
+  static defaults() {
+    return {
+      pager: true,
+      pagerActiveClassName: 'pager-active'
+    }
   }
 
   static publicMethods() {
